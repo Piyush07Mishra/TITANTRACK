@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipment Checkout - {{ machine.equipment_id }}</title>
+    <style>
+        :root {
+            --bg-base: #0a0b10;
+            --bg-card: rgba(20, 22, 28, 0.85);
+            --accent-primary: #f97316;
+            --accent-hover: #ea580c;
+            --accent-glow: rgba(249, 115, 22, 0.2);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --shadow-glow: 0 8px 30px rgba(249, 115, 22, 0.25);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        /* Global Styles */
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            background-color: #0a0b10;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(20, 22, 28, 0.6);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+            min-height: 100vh;
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        h1 {
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+        
+        .equipment-info {
+            background: var(--bg-card);
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .equipment-info:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .equipment-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-hover));
+        }
+        
+        .checkout-form {
+            background: var(--bg-card);
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .checkout-form:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .checkout-form::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-hover));
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 10px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+        
+        .form-control:focus {
+            border-color: var(--accent-primary);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        
+        .form-control[readonly] {
+            background: #f1f5f9;
+            color: #94a3b8;
+            border-color: #e2e8f0;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-right: 15px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 140px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary, .btn {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+            color: #ffffff;
+            border: none;
+        }
+        
+        .btn-primary:hover, .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border: 1.5px solid var(--border-light);
+            box-shadow: none;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
+        
+        .button-group {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+            border-radius: 12px;
+            border: 2px solid #f0f0f0;
+        }
+        
+        .messages {
+            margin-bottom: 30px;
+        }
+        
+        .alert {
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            border: 2px solid;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #f2ffed, #e8f7e8);
+            border-color: #20bf6b;
+            color: #166534;
+        }
+        
+        .alert-error {
+            background: linear-gradient(135deg, #fff5f5, #fef2f2);
+            border-color: #ff4757;
+            color: #991b1b;
+        }
+        
+        .required {
+            color: #ff4757;
+            margin-left: 3px;
+            font-weight: bold;
+        }
+        
+        /* Section Titles */
+        h3 {
+            font-size: 1.6rem;
+            color: var(--text-primary);
+            margin-bottom: 25px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.5px;
+        }
+        
+        h3::before {
+            content: '';
+            width: 6px;
+            height: 35px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+            border-radius: 3px;
+        }
+        
+        /* Status Cards */
+        .status-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .status-card.rented {
+            border-color: rgba(249, 115, 22, 0.2);
+            background: rgba(249, 115, 22, 0.05);
+        }
+        
+        .status-card.rented::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-hover));
+        }
+        
+        .rental-info {
+            background: var(--bg-base);
+            padding: 25px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            margin: 20px 0;
+            box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.02);
+        }
+        
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .status-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        
+        .status-unavailable {
+            background: rgba(249, 115, 22, 0.15);
+            color: var(--accent-hover);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+                margin-bottom: 30px;
+            }
+            
+            h3 {
+                font-size: 1.3rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.85rem;
+                min-width: 120px;
+                margin-bottom: 10px;
+            }
+            
+            .equipment-info, .checkout-form, .status-card {
+                padding: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .btn {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 12px;
+            }
+            
+            .button-group {
+                padding: 15px;
+            }
+            
+            .form-control {
+                padding: 10px 14px;
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .equipment-info, .checkout-form, .status-card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://m.media-amazon.com/images/I/51Ks92NyjeL._UF894,1000_QL80_.jpg" alt="logo" style=" height: 50px; position: fixed; top: 20px; left: 20px; z-index: 30;">
+        <h1>Equipment Checkout</h1>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;padding:14px;border:1px solid var(--border-light);border-radius:var(--radius-md);background:var(--bg-card);box-shadow:var(--shadow-sm);">
+            <div>
+                Signed in as <strong style="color:var(--text-primary);">{{ request.user.username }}</strong>
+                <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:rgba(249, 115, 22, 0.15);color:var(--accent-hover);border:1px solid rgba(249, 115, 22, 0.3);font-size:0.8rem;font-weight:700;margin-left:8px;">{{ request.user.userprofile.get_role_display }}</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                {% if request.user.userprofile.role == 'admin' %}
+                    <a href="/" class="btn btn-secondary">Dashboard</a>
+                    <a href="/admin/" class="btn btn-secondary">Admin Panel</a>
+                {% else %}
+                    <a href="{% url 'operator_dashboard' %}" class="btn btn-secondary">Dashboard</a>
+                {% endif %}
+                <form method="post" action="{% url 'logout' %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn">Logout</button>
+                </form>
+            </div>
+        </div>
+       
+        <!-- Display messages -->
+       
+
+        <!-- Equipment Information (readonly) -->
+        <div class="equipment-info">
+            <h3>Equipment Information</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Equipment ID</label>
+                    <input type="text" class="form-control" value="{{ machine.equipment_id }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Equipment Type</label>
+                    <input type="text" class="form-control" value="{{ machine.type }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Current Status</label>
+                    <input type="text" class="form-control" value="{{ machine_display_status|default:machine.status }}" readonly>
+                </div>
+            </div>
+        </div>
+
+        {% if is_already_rented %}
+            <!-- Equipment is already rented - show rental information -->
+            <div class="status-card rented">
+                <div class="status-badge status-unavailable">
+                    ⚠️ Currently Unavailable
+                </div>
+                <h3 style="margin-top: 0;">Equipment Already Rented</h3>
+                <p style="font-size: 1.1rem; margin-bottom: 25px; color: #1a1a1a; font-weight: 500;">
+                    This equipment is currently checked out and not available for rental.
+                </p>
+                
+                <div class="rental-info">
+                    <h4 style="margin-top: 0; font-size: 1.2rem; color: #1a1a1a; margin-bottom: 20px;">Current Rental Information:</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Rental ID</label>
+                            <input type="text" class="form-control" value="{{ current_rental.rental_id }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Operator ID</label>
+                            <input type="text" class="form-control" value="{{ current_rental.operator_id }}" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Operator Name</label>
+                            <input type="text" class="form-control" value="{{ current_rental.operator_name }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Site ID</label>
+                            <input type="text" class="form-control" value="{{ current_rental.site_id }}" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Check-out Date</label>
+                            <input type="text" class="form-control" value="{{ current_rental.start_date|date:'M d, Y H:i' }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Expected Return</label>
+                            <input type="text" class="form-control" value="{{ current_rental.expected_end_date|date:'M d, Y H:i' }}" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <a href="{% url 'rental_dashboard' %}" class="btn">🏠 View Dashboard</a>
+                <a href="{% url 'add' %}" class="btn btn-secondary">⬅️ Back</a>
+            </div>
+
+        {% else %}
+            <!-- Equipment is available - show checkout form -->
+            <div class="checkout-form">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <!-- Hidden fields for equipment data -->
+                    {{ form.equipment_id.as_hidden }}
+                    {{ form.type.as_hidden }}
+                    {{ form.status.as_hidden }}
+
+                    <h3>👤 Operator Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_operator_id">Operator ID <span class="required">*</span></label>
+                            <select id="id_operator_id" name="operator_id" class="form-control" required>
+                                <option value="">-- Select Operator --</option>
+                                {% for op in operators %}
+                                    <option value="{{ op.operator_id }}">{{ op.operator_id }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_operator_name">Operator Name</label>
+                            <input type="text" id="id_operator_name" class="form-control" readonly>
+                        </div>
+                    </div>
+
+
+                    <h3>🏗️ Site Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_site_id">Site ID <span class="required">*</span></label>
+                            {{ form.site_id }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_site_name">Site Name</label>
+                            {{ form.site_name }}
+                        </div>
+                    </div>
+
+                    <h3>Checkout Details</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_checkout_date">Checkout Date & Time <span class="required">*</span></label>
+                            {{ form.checkout_date }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_expected_return_date">Expected Return Date & Time <span class="required">*</span></label>
+                            {{ form.expected_return_date }}
+                        </div>
+                    </div>
+
+                    <!-- Hidden fields to store GPS Location -->
+                    <input type="hidden" name="checkout_lat" id="checkout_lat">
+                    <input type="hidden" name="checkout_lng" id="checkout_lng">
+                    <!-- Visual feedback for GPS status -->
+                    <div id="gps-status" style="margin-bottom: 20px; font-size: 0.9em; color: var(--text-secondary);">
+                        📍 Capturing location... Please allow location access to check out.
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn" id="submit-btn" disabled>Approve Checkout</button>
+                        <a href="{% url 'add' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Set default expected return date to 7 days from checkout date
+        document.getElementById('id_checkout_date').addEventListener('change', function() {
+            const checkoutDate = new Date(this.value);
+            if (!isNaN(checkoutDate)) {
+                const returnDate = new Date(checkoutDate);
+                returnDate.setDate(returnDate.getDate() + 7);
+                
+                // Format as datetime-local
+                const year = returnDate.getFullYear();
+                const month = String(returnDate.getMonth() + 1).padStart(2, '0');
+                const day = String(returnDate.getDate()).padStart(2, '0');
+                const hours = String(returnDate.getHours()).padStart(2, '0');
+                const minutes = String(returnDate.getMinutes()).padStart(2, '0');
+                
+                document.getElementById('id_expected_return_date').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+        });
+        
+        // --- Geolocation Fetching ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const gpsStatus = document.getElementById('gps-status');
+            const submitBtn = document.getElementById('submit-btn');
+            const latInput = document.getElementById('checkout_lat');
+            const lngInput = document.getElementById('checkout_lng');
+
+            if ("geolocation" in navigator && submitBtn) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        latInput.value = position.coords.latitude;
+                        lngInput.value = position.coords.longitude;
+                        gpsStatus.innerHTML = `✅ Location captured (${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)})`;
+                        gpsStatus.style.color = "#4ade80"; // Bright green text
+                        submitBtn.disabled = false; // Enable submit button only if GPS is found
+                        submitBtn.innerHTML = 'Approve Checkout';
+                    },
+                    (error) => {
+                        let msg = "Error capturing location: ";
+                        if (error.code === error.PERMISSION_DENIED) msg += "Permission denied. You must allow location to checkout.";
+                        else if (error.code === error.POSITION_UNAVAILABLE) msg += "Location info is unavailable.";
+                        else if (error.code === error.TIMEOUT) msg += "The request to get user location timed out.";
+                        else msg += "An unknown error occurred.";
+                        gpsStatus.innerHTML = "❌ " + msg;
+                        gpsStatus.style.color = "#ef4444"; // Red text
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else if (submitBtn) {
+                gpsStatus.innerHTML = "❌ Geolocation is not supported by this browser.";
+                gpsStatus.style.color = "#ef4444";
+            }
+        });
+
+        // Add loading states to forms
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '⏳ Processing...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            }
+            
+            // Auto-focus on first input
+            const firstInput = document.querySelector('input:not([readonly]):not([type="hidden"])');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        });
+        const operators = {{ operators_json|safe }};
+        const operatorSelect = document.getElementById("id_operator_id");
+        const operatorName = document.getElementById("id_operator_name");
+
+        operatorSelect.addEventListener("change", function() {
+            const selectedId = this.value;
+            const op = operators.find(o => o.id === selectedId);
+            if (op) {
+                operatorName.value = op.name;
+            } else {
+                operatorName.value = "";
+            }
+        });
+    </script>
+</body>
+</html>

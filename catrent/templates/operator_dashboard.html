@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load rental_filters %}
+    <title>Operator Dashboard — CatRent</title>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0a0b10;
+            --bg-card: rgba(20, 22, 28, 0.85);
+            --bg-surface: rgba(255, 255, 255, 0.03);
+            --accent-primary: #f97316;
+            --accent-hover: #ea580c;
+            --accent-glow: rgba(249, 115, 22, 0.2);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --border-default: rgba(255, 255, 255, 0.1);
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-glow: 0 8px 30px rgba(249, 115, 22, 0.25);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-btn: 12px;
+            --radius-card: 16px;
+            --accent-orange: #f97316;
+            --accent-orange-hover: #ea580c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #0a0b10;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 24px;
+            background: rgba(20, 22, 28, 0.6);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            min-height: 100vh;
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* ── Topbar ─────────────────────────────────────────────── */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+        }
+
+        .topbar-left h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .logout-form {
+            margin: 0;
+        }
+
+        .empty-state-error {
+            border-color: #ef4444;
+            color: #fca5a5;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .empty-state-full {
+            grid-column: 1 / -1;
+        }
+
+        .is-hidden {
+            display: none;
+        }
+
+        .modal-hint {
+            margin-top: 16px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .modal-note {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        .modal-note-spaced {
+            margin-bottom: 24px;
+        }
+
+        .modal-state {
+            padding: 20px 0;
+        }
+
+        .modal-state-processing {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 0;
+        }
+
+        .modal-state-title {
+            margin-bottom: 8px;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .progress-fill {
+            width: var(--progress-width, 0%);
+        }
+
+        .user-info {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: rgba(249, 115, 22, 0.15);
+            color: var(--accent-hover);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            margin-left: 6px;
+        }
+
+        .topbar-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 10px 18px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border: 1.5px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+        }
+        .btn-outline:hover { 
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1.5px solid rgba(239, 68, 68, 0.2);
+        }
+        .btn-danger:hover { 
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* ── Stats Row ───────────────────────────────────────────── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+        .stat-number { font-size: 32px; font-weight: 700; color: var(--accent-primary); }
+        .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;}
+        .stat-danger .stat-number { color: #ef4444; }
+        .stat-danger { border-color: rgba(239,68,68,0.3); }
+        .stat-warning .stat-number { color: var(--accent-primary); }
+        .stat-warning { border-color: rgba(249,115,22,0.3); }
+        .stat-yellow .stat-number { color: #eab308; }
+        .stat-yellow { border-color: rgba(234,179,8,0.3); }
+
+        /* ── Section Header ──────────────────────────────────────── */
+        .section-header {
+            font-size: 1.25rem;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+        }
+
+        /* ── Rental Cards Grid ───────────────────────────────────── */
+        .rentals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .rental-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
+        }
+        .rental-card:hover { 
+            transform: translateY(-4px); 
+            border-color: rgba(249, 115, 22, 0.3); 
+            box-shadow: var(--shadow-lg);
+        }
+        .rental-card.urgency-overdue { border-color: rgba(239,68,68,0.5); }
+        .rental-card.urgency-due_today { border-color: rgba(249,115,22,0.5); }
+        .rental-card.urgency-due_soon { border-color: rgba(234,179,8,0.4); }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+            position: relative;
+        }
+        .machine-icon { font-size: 28px; }
+        .machine-id { font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px;}
+        .machine-type { font-size: 12px; color: var(--text-secondary); font-weight: 500;}
+
+        /* Urgency badges */
+        .urgency-badge {
+            margin-left: auto;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .badge-overdue { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+        .badge-due_today { background: rgba(249,115,22,0.15); color: #f97316; border: 1px solid rgba(249,115,22,0.3); }
+        .badge-due_soon { background: rgba(234,179,8,0.15); color: #eab308; border: 1px solid rgba(234,179,8,0.3); }
+        .badge-on_track { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+
+        .card-body { padding: 16px 20px; }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 13px;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: var(--text-muted); }
+        .detail-value { color: var(--text-primary); font-weight: 500; }
+        .text-danger { color: #ef4444 !important; }
+        .text-warning { color: #f97316 !important; }
+
+        /* Progress bar */
+        .return-progress { margin-top: 12px; }
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            height: 4px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        .progress-fill.urgency-overdue { background: #ef4444; width: 100% !important; }
+        .progress-fill.urgency-due_today { background: #f97316; }
+        .progress-fill.urgency-due_soon { background: #eab308; }
+        .progress-fill.urgency-on_track { background: #22c55e; }
+        .progress-label { font-size: 11px; color: var(--text-muted); }
+
+        .card-footer { padding: 16px 20px; border-top: 1px solid var(--border-default); }
+        .btn-checkin {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-orange);
+            color: white;
+            border: none;
+            border-radius: var(--radius-btn);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-checkin:hover {
+            background: var(--accent-orange-hover);
+            transform: translateY(-1px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--bg-surface);
+            border: 1px dashed var(--border-default);
+            border-radius: var(--radius-card);
+            color: var(--text-muted);
+        }
+        .empty-state svg { margin-bottom: 16px; opacity: 0.5; }
+
+        /* ── Modal Styles ────────────────────────────────────────── */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-accent);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 440px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-default);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title h3 { font-size: 1.2rem; margin-bottom: 4px; }
+        .modal-title p { font-size: 0.85rem; color: var(--text-muted); }
+
+        .btn-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .btn-close:hover { color: white; background: rgba(255,255,255,0.1); }
+
+        .machine-info-strip {
+            background: var(--bg-surface);
+            padding: 12px 20px;
+            display: flex;
+            gap: 12px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .info-chip {
+            background: rgba(255,255,255,0.05);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .modal-body { padding: 24px; text-align: center; }
+
+        /* Scanner state */
+        #qr-reader {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid var(--border-default);
+        }
+        #qr-reader video { border-radius: 10px; }
+
+        /* Processing state */
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(249, 115, 22, 0.2);
+            border-top-color: var(--accent-orange);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Success/Error states */
+        .status-icon {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+        .status-success { background: rgba(34,197,94,0.1); color: #22c55e; }
+        .status-error { background: rgba(239,68,68,0.1); color: #ef4444; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .topbar { flex-direction: column; align-items: flex-start; }
+            .topbar-right { width: 100%; justify-content: space-between; margin-top: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <h1>CatRent Dashboard</h1>
+                <div class="user-info">
+                    Operator: <strong>{{ operator.name }}</strong> ({{ operator.operator_id }})
+                    <span class="role-badge">Operator</span>
+                </div>
+            </div>
+            <div class="topbar-right">
+                {% if request.user.userprofile.role == 'admin' %}
+                <a class="btn btn-outline" href="{% url 'rental_dashboard' %}">Admin Panel</a>
+                {% endif %}
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button class="btn btn-danger" type="submit">Logout</button>
+                </form>
+            </div>
+        </div>
+
+        {% if error %}
+        <div class="empty-state empty-state-error">
+            {{ error }}
+        </div>
+        {% else %}
+
+        <!-- KPI STATS -->
+        <div class="stats-row" id="kpi-stats">
+            <div class="stat-card">
+                <div class="stat-number" id="kpi-total">{{ kpi_total }}</div>
+                <div class="stat-label">Active Rentals</div>
+            </div>
+            <div class="stat-card stat-danger">
+                <div class="stat-number" id="kpi-overdue">{{ kpi_overdue }}</div>
+                <div class="stat-label">Overdue</div>
+            </div>
+            <div class="stat-card stat-warning">
+                <div class="stat-number" id="kpi-due_today">{{ kpi_due_today }}</div>
+                <div class="stat-label">Due Today</div>
+            </div>
+            <div class="stat-card stat-yellow">
+                <div class="stat-number" id="kpi-due_soon">{{ kpi_due_soon }}</div>
+                <div class="stat-label">Due Soon (≤2d)</div>
+            </div>
+        </div>
+
+        <!-- RENTALS GRID -->
+        <div class="section-header">
+            <h2>My Rented Equipment</h2>
+        </div>
+
+        <div class="rentals-grid" id="rentals-grid">
+            {% for item in rented %}
+            <div class="rental-card urgency-{{ item.urgency }}" id="rental-card-{{ item.rental.id }}">
+                <div class="card-top">
+                    <div class="machine-icon">
+                        {% if 'excavator' in item.rental.machine.type.lower %}🚜
+                        {% elif 'loader' in item.rental.machine.type.lower %}🏗️
+                        {% elif 'dozer' in item.rental.machine.type.lower %}🚧
+                        {% else %}⚙️{% endif %}
+                    </div>
+                    <div>
+                        <div class="machine-id">{{ item.rental.machine.equipment_id }}</div>
+                        <div class="machine-type">{{ item.rental.machine.type }}</div>
+                    </div>
+                    
+                    {% if item.urgency == 'overdue' %}
+                        <div class="urgency-badge badge-overdue">Overdue by {{ item.days_remaining|abs_filter }} days</div>
+                    {% elif item.urgency == 'due_today' %}
+                        <div class="urgency-badge badge-due_today">Due Today</div>
+                    {% elif item.urgency == 'due_soon' %}
+                        <div class="urgency-badge badge-due_soon">Due in {{ item.days_remaining }} days</div>
+                    {% else %}
+                        <div class="urgency-badge badge-on_track">{{ item.days_remaining }} days left</div>
+                    {% endif %}
+                </div>
+
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span class="detail-label">Start Date</span>
+                        <span class="detail-value">{{ item.rental.start_date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Expected Return</span>
+                        <span class="detail-value {% if item.urgency == 'overdue' %}text-danger{% elif item.urgency == 'due_today' %}text-warning{% endif %}">
+                            {{ item.rental.expected_end_date|date:"M d, Y" }}
+                        </span>
+                    </div>
+                    
+                    <div class="return-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill urgency-{{ item.urgency }}" data-progress="{{ item.days_remaining|progress_percent:item.rental }}"></div>
+                        </div>
+                        <div class="progress-label">Rental Duration Progress</div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button class="btn-checkin" onclick="openCheckinModal('{{ item.rental.id }}', '{{ item.rental.machine.equipment_id }}', '{{ item.rental.machine.type }}', '{{ item.rental.checkout_lat|default:'None' }}', '{{ item.rental.checkout_lng|default:'None' }}')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/>
+                        </svg>
+                        Scan QR to Check In
+                    </button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state" id="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+                <h3>All caught up!</h3>
+                <p>You have no active rentals assigned to you.</p>
+            </div>
+            {% endfor %}
+            
+            <!-- Hidden empty state to show when all cards are removed -->
+            <div class="empty-state empty-state-full is-hidden" id="empty-state-hidden">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+                <h3>All caught up!</h3>
+                <p>You have no active rentals assigned to you.</p>
+            </div>
+        </div>
+        
+
+
+        {% endif %}
+    </div>
+
+    <!-- INLINE MODAL HTML -->
+    <div class="modal-overlay" id="checkinModal" onclick="if(event.target === this) closeCheckinModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <h3 id="modalTitle">Check In Machine</h3>
+                    <p id="modalSubtitle">Scan the QR code on the equipment</p>
+                </div>
+                <button class="btn-close" onclick="closeCheckinModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            
+            <div class="machine-info-strip" id="modalMachineInfo">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="modal-body">
+                <!-- State 1: Scanner -->
+                <div id="stateScanner">
+                    <div id="qr-reader"></div>
+                    <p class="modal-hint">Point your camera at the machine's QR code.</p>
+                </div>
+
+                <!-- State 2: Processing -->
+                <div id="stateProcessing" class="modal-state modal-state-processing is-hidden">
+                    <div class="spinner"></div>
+                    <h4 id="processingLabel">Verifying QR Code...</h4>
+                    <p class="modal-note">Please do not close this window.</p>
+                </div>
+
+                <!-- State 3: Success -->
+                <div id="stateSuccess" class="modal-state is-hidden">
+                    <div class="status-icon status-success">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <h3 class="modal-state-title">Check-In Complete!</h3>
+                    <p id="successMessage" class="modal-note modal-note-spaced"></p>
+                    <button class="btn btn-outline btn-full" id="btn-close-success" onclick="closeCheckinModal()">Close</button>
+                </div>
+
+                <!-- State 4: Error -->
+                <div id="stateError" class="modal-state is-hidden">
+                    <div class="status-icon status-error">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    </div>
+                    <h3 class="modal-state-title">Check-In Failed</h3>
+                    <p id="errorLabel" class="modal-note modal-note-spaced">The scanned QR code does not match this machine.</p>
+                    <button class="btn-checkin btn-full" onclick="startScanner()">Try Scanning Again</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS LOGIC -->
+    <script>
+        let html5QrCode = null;
+        let currentRentalId = null;
+        let currentMachineId = null;
+        let scannerActive = false;
+
+        // CSRF Token Helper
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // ── Open modal ──────────────────────────────────────────────────────────────
+        function openCheckinModal(rentalId, machineId, machineType, checkoutLat, checkoutLng) {
+            currentRentalId = rentalId;
+            currentMachineId = machineId;
+
+            // Fill machine info strip
+            document.getElementById('modalMachineInfo').innerHTML = `
+                <span class="info-chip">🔧 ${machineType}</span>
+                <span class="info-chip">ID: ${machineId}</span>
+                <span class="info-chip">Rental #${rentalId}</span>
+            `;
+
+            document.getElementById('modalTitle').textContent = `Check In ${machineId}`;
+            document.getElementById('modalSubtitle').textContent = `Scan the QR code on ${machineType} ${machineId}`;
+
+            // Show modal
+            document.getElementById('checkinModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            // Verify GPS before opening the camera
+            if (checkoutLat && checkoutLng && checkoutLat !== 'None' && checkoutLng !== 'None') {
+                showState('processing');
+                document.getElementById('processingLabel').textContent = "Verifying GPS Location...";
+                
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const currentLat = position.coords.latitude;
+                            const currentLng = position.coords.longitude;
+                            
+                            // Haversine formula to calculate distance in meters
+                            const R = 6371e3; // metres
+                            const φ1 = currentLat * Math.PI/180; // φ, λ in radians
+                            const φ2 = parseFloat(checkoutLat) * Math.PI/180;
+                            const Δφ = (parseFloat(checkoutLat)-currentLat) * Math.PI/180;
+                            const Δλ = (parseFloat(checkoutLng)-currentLng) * Math.PI/180;
+
+                            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                                      Math.cos(φ1) * Math.cos(φ2) *
+                                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+                            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                            const distance = R * c; // in metres
+
+                            if (distance > 500) {
+                                // Too far!
+                                showState('error');
+                                document.getElementById('errorLabel').innerHTML = `Location Verification Failed!<br>You are ${Math.round(distance)}m away from the checkout site.<br>Max allowed distance is 500m.`;
+                            } else {
+                                // Proceed to scanner
+                                showState('scanner');
+                                startScanner();
+                            }
+                        },
+                        (error) => {
+                            showState('error');
+                            document.getElementById('errorLabel').textContent = "GPS Error: Please enable location access to check in.";
+                        },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    );
+                } else {
+                    showState('error');
+                    document.getElementById('errorLabel').textContent = "Geolocation is not supported by your browser.";
+                }
+            } else {
+                // Legacy rentals without GPS coordinates skip the check
+                showState('scanner');
+                startScanner();
+            }
+        }
+
+        // ── Close modal ─────────────────────────────────────────────────────────────
+        function closeCheckinModal() {
+            stopScanner();
+            document.getElementById('checkinModal').style.display = 'none';
+            document.body.style.overflow = '';
+            currentRentalId = null;
+            currentMachineId = null;
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape" && document.getElementById('checkinModal').style.display === 'flex') {
+                closeCheckinModal();
+            }
+        });
+
+        // ── Show specific state ──────────────────────────────────────────────────────
+        function showState(state) {
+            // states: 'scanner', 'processing', 'success', 'error'
+            document.getElementById('stateScanner').style.display = state === 'scanner' ? 'block' : 'none';
+            document.getElementById('stateProcessing').style.display = state === 'processing' ? 'flex' : 'none';
+            document.getElementById('stateSuccess').style.display = state === 'success' ? 'block' : 'none';
+            document.getElementById('stateError').style.display = state === 'error' ? 'block' : 'none';
+        }
+
+        function setProgressWidths() {
+            document.querySelectorAll('.progress-fill[data-progress]').forEach((el) => {
+                const value = el.getAttribute('data-progress');
+                const width = Number.parseFloat(value);
+                if (!Number.isNaN(width)) {
+                    el.style.setProperty('--progress-width', `${width}%`);
+                }
+            });
+        }
+
+        // ── Start QR scanner ────────────────────────────────────────────────────────
+        function startScanner() {
+            if (scannerActive) return;
+
+            showState('scanner');
+            
+            // Re-initialize to ensure a fresh state
+            if (html5QrCode) {
+                html5QrCode.clear();
+            }
+            html5QrCode = new Html5Qrcode("qr-reader");
+
+            html5QrCode.start(
+                { facingMode: "environment" },  // rear camera
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0,
+                },
+                (decodedText) => {
+                    let scannedValue = decodedText.trim();
+                    const checkoutPathStr = '/checkout/';
+                    if (scannedValue.includes(checkoutPathStr)) {
+                        const parts = scannedValue.split(checkoutPathStr);
+                        if (parts.length > 1) {
+                            scannedValue = parts[1].replace('/', '');
+                        }
+                    }
+                    onQRScanned(scannedValue);
+                },
+                (errorMessage) => {
+                    // Scan frame error — ignore, keep trying
+                }
+            ).then(() => {
+                scannerActive = true;
+            }).catch((err) => {
+                showState('error');
+                document.getElementById('errorMessage').textContent =
+                    'Camera access denied or unavailable. Please allow camera access and try again.';
+            });
+        }
+
+        // ── Stop QR scanner ─────────────────────────────────────────────────────────
+        function stopScanner() {
+            if (html5QrCode && scannerActive) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    scannerActive = false;
+                }).catch(() => {
+                    scannerActive = false;
+                });
+            }
+        }
+
+        // ── QR scanned — submit check-in ────────────────────────────────────────────
+        function onQRScanned(scannedValue) {
+            stopScanner();
+            showState('processing');
+
+            fetch(`/checkin/${currentRentalId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: `scanned_equipment_id=${encodeURIComponent(scannedValue)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success || data.status === 'success') {
+                    showState('success');
+                    document.getElementById('successMessage').textContent = data.message || "Checked in successfully!";
+                    
+                    // Remove card from DOM
+                    const card = document.getElementById(`rental-card-${currentRentalId}`);
+                    if (card) {
+                        card.style.transition = 'all 0.5s ease';
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.9)';
+                        
+                        setTimeout(() => {
+                            // Determine urgency to update KPI stats
+                            let urgency = 'on-track';
+                            if (card.classList.contains('urgency-overdue')) urgency = 'overdue';
+                            else if (card.classList.contains('urgency-due_today')) urgency = 'due_today';
+                            else if (card.classList.contains('urgency-due_soon')) urgency = 'due_soon';
+                            
+                            card.remove();
+                            updateKPIsAfterCheckin(urgency);
+                        }, 500);
+                    }
+                } else {
+                    showState('error');
+                    document.getElementById('errorMessage').textContent = data.message || "Invalid QR code. Please try again.";
+                }
+            })
+            .catch(err => {
+                showState('error');
+                document.getElementById('errorMessage').textContent = "Network error. Please try again.";
+            });
+        }
+
+        function updateKPIsAfterCheckin(urgency) {
+            // Update Total
+            const elTotal = document.getElementById('kpi-total');
+            if (elTotal) elTotal.textContent = Math.max(0, parseInt(elTotal.textContent) - 1);
+            
+            // Update specific bucket
+            const elBucket = document.getElementById(`kpi-${urgency}`);
+            if (elBucket) elBucket.textContent = Math.max(0, parseInt(elBucket.textContent) - 1);
+
+            // Check if empty
+            const grid = document.getElementById('rentals-grid');
+            if (grid && grid.querySelectorAll('.rental-card').length === 0) {
+                const hiddenEmpty = document.getElementById('empty-state-hidden');
+                if (hiddenEmpty) hiddenEmpty.style.display = 'block';
+                
+                const existingEmpty = document.getElementById('empty-state');
+                if (existingEmpty) existingEmpty.style.display = 'block';
+            }
+        }
+
+        setProgressWidths();
+    </script>
+</body>
+</html>

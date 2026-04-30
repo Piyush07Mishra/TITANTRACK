@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Registration — CatRent</title>
+    <meta name="description" content="Create a CatRent admin account. This page is for system administrators only.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #F8F9FA;
+            --bg-card: #FFFFFF;
+            --accent-primary: #f97316;
+            --accent-hover: #ea580c;
+            --accent-glow: rgba(249, 115, 22, 0.15);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-light: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-glow: 0 8px 30px rgba(249, 115, 22, 0.35);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.1);
+            --danger-border: rgba(239, 68, 68, 0.25);
+            --warning-bg: #fffdf2;
+            --warning-border: rgba(249, 115, 22, 0.3);
+            --warning-text: #ea580c;
+            --success: #22c55e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ─── LEFT PANEL ─── */
+        .left-panel {
+            flex: 0 0 55%;
+            background: var(--bg-base);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(249, 115, 22, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(249, 115, 22, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(249, 115, 22, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .brand {
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .brand-icon {
+            font-size: 2.8rem;
+            filter: drop-shadow(0 0 20px rgba(249, 115, 22, 0.3));
+        }
+
+        .brand-name {
+            font-size: 2.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-subtitle {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+        }
+
+        .warning-notice {
+            background: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 12px;
+            padding: 18px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .warning-notice p {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.6;
+        }
+
+        .warning-notice p:first-child {
+            color: var(--warning-text);
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warning-notice p:last-child {
+            margin-top: 8px;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        /* ─── RIGHT PANEL ─── */
+        .right-panel {
+            flex: 0 0 45%;
+            background: var(--bg-card);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 48px 56px;
+            border-left: 1px solid var(--border-light);
+            box-shadow: var(--shadow-lg);
+            overflow-y: auto;
+        }
+
+        .form-header {
+            margin-bottom: 28px;
+        }
+
+        .form-header h1 {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .form-header p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* ─── ERROR BLOCK ─── */
+        .error-block {
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .error-block svg { flex-shrink: 0; margin-top: 1px; }
+
+        .error-block .error-text {
+            color: #fca5a5;
+            font-size: 0.86rem;
+            line-height: 1.5;
+        }
+
+        .field-error {
+            color: #fca5a5;
+            font-size: 0.8rem;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ─── FORM ─── */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-light);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.93rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.25s ease;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .helper-text {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        /* Password strength bar */
+        .password-strength {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .strength-segment {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border-light);
+            transition: background 0.3s;
+        }
+
+        .strength-segment.weak { background: #ef4444; }
+        .strength-segment.medium { background: #eab308; }
+        .strength-segment.strong { background: #22c55e; }
+
+        .strength-label {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        /* Password match indicator */
+        .match-indicator {
+            font-size: 0.8rem;
+            margin-top: 6px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .match-ok { color: var(--success); }
+        .match-fail { color: var(--danger); }
+
+        .btn-submit {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.98rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 6px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(249, 115, 22, 0.35);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .footer-link {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .footer-link a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .footer-link a:hover {
+            color: #fb923c;
+            text-decoration: underline;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 900px) {
+            body { flex-direction: column; }
+
+            .left-panel {
+                flex: none;
+                padding: 36px 28px 28px;
+            }
+
+            .right-panel {
+                flex: 1;
+                padding: 28px;
+                border-left: none;
+                border-top: 1px solid var(--border-light);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .brand { animation: fadeInUp 0.6s ease-out; }
+        .warning-notice { animation: fadeInUp 0.8s ease-out 0.2s both; }
+        .form-header { animation: fadeInUp 0.6s ease-out 0.1s both; }
+        form { animation: fadeInUp 0.6s ease-out 0.2s both; }
+    </style>
+</head>
+<body>
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+        <div class="brand">
+            <div class="brand-logo">
+                <span class="brand-icon">🏗️</span>
+                <span class="brand-name">CatRent</span>
+            </div>
+            <p class="brand-subtitle">Admin Registration</p>
+        </div>
+
+        <div class="warning-notice">
+            <p>⚠ This page is for system administrators only.</p>
+            <p>Operators receive login credentials via email automatically when they are added by an admin through the admin panel.</p>
+            <p>If you are an operator looking to log in, go back to the login page and use the credentials sent to your email.</p>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+        <div class="form-header">
+            <h1>Create Admin Account</h1>
+            <p>Fill in the details below to register as an administrator</p>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="error-block">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            <span class="error-text">
+                {% for err in form.non_field_errors %}{{ err }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+            </span>
+        </div>
+        {% endif %}
+
+        <form method="post" id="signup-form">
+            {% csrf_token %}
+
+            <!-- Username -->
+            <div class="form-group">
+                <label class="form-label" for="id_username">Username</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <input type="text" name="username" id="id_username" class="form-input" placeholder="Username" value="{{ form.username.value|default:'' }}" required>
+                </div>
+                {% if form.username.errors %}
+                <div class="field-error">✕ {{ form.username.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label class="form-label" for="id_email">Email Address</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    <input type="email" name="email" id="id_email" class="form-input" placeholder="Email Address" value="{{ form.email.value|default:'' }}" required>
+                </div>
+                {% if form.email.errors %}
+                <div class="field-error">✕ {{ form.email.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label class="form-label" for="id_password">Password</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <input type="password" name="password" id="id_password" class="form-input" placeholder="Password (min 8 characters)" required minlength="8" oninput="checkStrength(this.value); checkMatch();">
+                </div>
+                <div class="password-strength">
+                    <div class="strength-segment" id="seg1"></div>
+                    <div class="strength-segment" id="seg2"></div>
+                    <div class="strength-segment" id="seg3"></div>
+                    <div class="strength-segment" id="seg4"></div>
+                </div>
+                <div class="strength-label" id="strength-label"></div>
+                {% if form.password.errors %}
+                <div class="field-error">✕ {{ form.password.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group">
+                <label class="form-label" for="id_confirm_password">Confirm Password</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <input type="password" name="confirm_password" id="id_confirm_password" class="form-input" placeholder="Confirm Password" required oninput="checkMatch();">
+                </div>
+                <div class="match-indicator" id="match-indicator"></div>
+                {% if form.confirm_password.errors %}
+                <div class="field-error">✕ {{ form.confirm_password.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Admin Secret Key -->
+            <div class="form-group">
+                <label class="form-label" for="id_admin_secret_key">Admin Registration Key</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                    </svg>
+                    <input type="password" name="admin_secret_key" id="id_admin_secret_key" class="form-input" placeholder="Admin Registration Key" required>
+                </div>
+                <p class="helper-text">Contact your system administrator for the registration key</p>
+                {% if form.admin_secret_key.errors %}
+                <div class="field-error">✕ {{ form.admin_secret_key.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn-submit">Create Admin Account</button>
+        </form>
+
+        <p class="footer-link"><a href="{% url 'login' %}">← Back to Login</a></p>
+    </div>
+
+    <script>
+        function checkStrength(password) {
+            const segs = [
+                document.getElementById('seg1'),
+                document.getElementById('seg2'),
+                document.getElementById('seg3'),
+                document.getElementById('seg4'),
+            ];
+            const label = document.getElementById('strength-label');
+
+            // Reset
+            segs.forEach(s => s.className = 'strength-segment');
+            label.textContent = '';
+            label.style.color = '';
+
+            if (!password) return;
+
+            let score = 0;
+            if (password.length >= 8) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[^A-Za-z0-9]/.test(password)) score++;
+
+            const levels = [
+                { cls: 'weak', text: 'Weak', color: '#ef4444' },
+                { cls: 'weak', text: 'Weak', color: '#ef4444' },
+                { cls: 'medium', text: 'Medium', color: '#eab308' },
+                { cls: 'strong', text: 'Strong', color: '#22c55e' },
+                { cls: 'strong', text: 'Very Strong', color: '#22c55e' },
+            ];
+
+            for (let i = 0; i < score; i++) {
+                segs[i].classList.add(levels[score].cls);
+            }
+            label.textContent = levels[score].text;
+            label.style.color = levels[score].color;
+        }
+
+        function checkMatch() {
+            const p1 = document.getElementById('id_password').value;
+            const p2 = document.getElementById('id_confirm_password').value;
+            const indicator = document.getElementById('match-indicator');
+
+            if (!p2) {
+                indicator.innerHTML = '';
+                return;
+            }
+
+            if (p1 === p2) {
+                indicator.innerHTML = '<span class="match-ok">✓ Passwords match</span>';
+            } else {
+                indicator.innerHTML = '<span class="match-fail">✕ Passwords do not match</span>';
+            }
+        }
+    </script>
+</body>
+</html>

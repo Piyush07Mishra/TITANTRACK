@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Equipment QR Scan Info</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0a0b10;
+            --bg-card: rgba(20, 22, 28, 0.85);
+            --accent-primary: #f97316;
+            --accent-hover: #ea580c;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --radius-lg: 16px;
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            background-color: #0a0b10;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(20, 22, 28, 0.6);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-hover));
+        }
+        h1 {
+            color: var(--text-primary);
+            text-align: center;
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .info-section {
+            margin: 20px 0;
+            padding: 25px;
+            border-left: 4px solid var(--accent-primary);
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius-md);
+        }
+        .info-row {
+            display: flex;
+            margin: 15px 0;
+            align-items: center;
+        }
+        .label {
+            font-weight: 600;
+            width: 160px;
+            color: var(--text-secondary);
+        }
+        .value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .status {
+            padding: 6px 16px;
+            border-radius: 999px;
+            color: white;
+            font-weight: 600;
+            display: inline-block;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status.available { background-color: #10b981; }
+        .status.rented { background-color: rgba(249, 115, 22, 0.15); color: var(--accent-hover); border: 1px solid rgba(249, 115, 22, 0.3); }
+        .status.maintenance { background-color: #f59e0b; }
+        .status.out-of-service { background-color: #ef4444; }
+        .rental-info {
+            background-color: rgba(249, 115, 22, 0.05);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: var(--radius-md);
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .no-rental {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-light);
+            color: var(--text-secondary);
+        }
+        .scan-time {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 40px;
+            border-top: 1px solid var(--border-light);
+            padding-top: 20px;
+        }
+        .back-btn {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(249, 115, 22, 0.35);
+            text-decoration: none;
+            color: white;
+        }
+        .topbar-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            padding: 16px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            background: var(--bg-card);
+            box-shadow: var(--shadow-sm);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="topbar-info">
+            <div>
+                Signed in as <strong style="color:var(--text-primary);">{{ request.user.username }}</strong>
+                <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:rgba(249, 115, 22, 0.15);color:var(--accent-hover);border:1px solid rgba(249, 115, 22, 0.3);font-size:0.8rem;font-weight:700;margin-left:8px;">{{ request.user.userprofile.get_role_display }}</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                {% if request.user.userprofile.role == 'admin' %}
+                    <a href="/" class="back-btn" style="margin-top:0; padding: 8px 16px;">Dashboard</a>
+                    <a href="/admin/" class="back-btn" style="margin-top:0; padding: 8px 16px;">Admin Panel</a>
+                {% else %}
+                    <a href="{% url 'operator_dashboard' %}" class="back-btn" style="margin-top:0; padding: 8px 16px;">Dashboard</a>
+                {% endif %}
+                <form method="post" action="{% url 'logout' %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="back-btn" style="margin-top:0; padding: 8px 16px;">Logout</button>
+                </form>
+            </div>
+        </div>
+        <h1>🔍 Equipment Scan Information</h1>
+        
+        <div class="info-section">
+            <h3>Equipment Details</h3>
+            <div class="info-row">
+                <div class="label">Equipment ID:</div>
+                <div class="value"><strong>{{ machine.equipment_id }}</strong></div>
+            </div>
+            <div class="info-row">
+                <div class="label">Type:</div>
+                <div class="value">{{ machine.type }}</div>
+            </div>
+            <div class="info-row">
+                <div class="label">Status:</div>
+                <div class="value">
+                    <span class="status {{ machine.status|lower|cut:' '|cut:'-' }}">{{ machine.status }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% if current_rental %}
+            <div class="rental-info">
+                <h3>Current Rental Information</h3>
+                <div class="info-row">
+                    <div class="label">Rental ID:</div>
+                    <div class="value">{{ current_rental.rental_id }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Operator ID:</div>
+                    <div class="value">{{ current_rental.operator_id }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Operator Name:</div>
+                    <div class="value">{{ current_rental.operator_name }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Site ID:</div>
+                    <div class="value">{{ current_rental.site_id }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Site Name:</div>
+                    <div class="value">{{ current_rental.site_name|default:"Not specified" }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Check-out Date:</div>
+                    <div class="value">{{ current_rental.start_date|date:"M d, Y H:i" }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Expected Return:</div>
+                    <div class="value">{{ current_rental.expected_end_date|date:"M d, Y H:i" }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Rental Status:</div>
+                    <div class="value">
+                        <span class="status {{ current_rental.status|lower }}">{{ current_rental.status }}</span>
+                        {% if current_rental.is_overdue %}
+                            <span class="status out-of-service">OVERDUE</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="rental-info no-rental">
+                <h3>📋 Rental Status</h3>
+                <p><strong>No active rental</strong> - Equipment is available for checkout.</p>
+            </div>
+        {% endif %}
+
+        <div class="scan-time">
+            Scanned on: {{ scan_time|date:"M d, Y H:i:s" }}
+        </div>
+
+        <center>
+            <a href="{% url 'add' %}" class="back-btn">← Back to Dashboard</a>
+        </center>
+    </div>
+</body>
+</html>
