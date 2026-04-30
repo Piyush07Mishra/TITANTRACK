@@ -2345,6 +2345,27 @@
                 Signed in as <strong>{{ request.user.username }}</strong>
                 <span class="role-pill">{{ request.user.userprofile.get_role_display }}</span>
             </div>
+
+            {% if messages %}
+            <div class="messages-container" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 90%; max-width: 600px;">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}" style="padding: 15px; margin-bottom: 10px; border-radius: 8px; background: {% if message.tags == 'success' %}#22c55e{% else %}#ef4444{% endif %}; color: white; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-weight: 600;">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            <script>
+                setTimeout(() => {
+                    const container = document.querySelector('.messages-container');
+                    if (container) {
+                        container.style.transition = 'opacity 0.5s ease';
+                        container.style.opacity = '0';
+                        setTimeout(() => container.remove(), 500);
+                    }
+                }, 5000);
+            </script>
+            {% endif %}
+
             <div class="top-actions">
                 {% if request.user.userprofile.role == 'admin' %}
                 <a href="/" class="btn btn-secondary">Dashboard</a>
