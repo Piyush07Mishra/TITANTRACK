@@ -643,19 +643,28 @@ def manual_regenerate_qr(request):
     from django.core.management import call_command
     from django.conf import settings
     import io
-    from django.core.management import CommandError
+    import os
 
     out = io.StringIO()
-    storage_type = getattr(settings, 'DEFAULT_FILE_STORAGE', 'Default (Local)')
+    
+    # Debug variables
+    c_name = os.getenv('CLOUDINARY_CLOUD_NAME', 'MISSING')
+    c_key = os.getenv('CLOUDINARY_API_KEY', 'MISSING')
+    c_secret = os.getenv('CLOUDINARY_API_SECRET', 'MISSING')
+    
+    # Check if storage is actually Cloudinary
+    from django.core.files.storage import default_storage
+    storage_class = default_storage.__class__.__name__
+    
+    debug_info = f"Storage: {storage_class} | Name: {c_name[:3]}... | Key: {c_key[:3]}... | Secret: {c_secret[:3]}..."
     
     try:
         call_command('regenerate_qr', stdout=out)
         output = out.getvalue()
-        messages.success(request, f"QR Regeneration complete! Storage: {storage_type}")
-        # Log the output for debugging
+        messages.success(request, f"QR Regeneration complete! {debug_info}")
         print(f"QR Regeneration Output:\n{output}")
     except Exception as e:
-        messages.error(request, f"Error regenerating QR codes: {str(e)}")
+        messages.error(request, f"Error: {str(e)} | {debug_info}")
     
     return redirect('rental_dashboard')
 
