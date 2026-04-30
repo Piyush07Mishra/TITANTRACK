@@ -62,9 +62,13 @@ class Machine(models.Model):
             self.generate_qr_code()
         super().save(*args, **kwargs)
 
-    def generate_qr_code(self):
+    def generate_qr_code(self, force=False):
+        """Generates a QR code for the machine checkout URL."""
+        if self.qr_code and not force:
+            return
+
         # Create QR code with checkout URL for admins
-        site_url = settings.SITE_URL.rstrip('/')
+        site_url = getattr(settings, 'SITE_URL', 'https://titantrack.onrender.com').rstrip('/')
         checkout_url = f"{site_url}/checkout/{self.equipment_id}/"
 
         qr = qrcode.QRCode(
@@ -82,6 +86,9 @@ class Machine(models.Model):
         buffer.seek(0)
 
         filename = f"qr_{self.equipment_id}.png"
+        
+        # If force=True and we have an old qr_code, we might want to delete it 
+        # But usually .save() with the same name handles it or Cloudinary versioning takes over
         self.qr_code.save(filename, File(buffer), save=False)
 
 

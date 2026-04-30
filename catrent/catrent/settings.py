@@ -186,7 +186,7 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 # Site URL (used in emails and QR codes)
-SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')  # change to production domain when deploying
+SITE_URL = os.getenv('SITE_URL', 'https://titantrack.onrender.com')
 
 # Admin signup secret key — required to create admin accounts
 ADMIN_SIGNUP_KEY = 'catrent-admin-2024'  # change this to something secret in production

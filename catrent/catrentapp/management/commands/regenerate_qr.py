@@ -14,7 +14,7 @@ class Command(BaseCommand):
         for machine in machines:
             try:
                 self.stdout.write(f"Regenerating QR for {machine.equipment_id}...")
-                machine.generate_qr_code()
+                machine.generate_qr_code(force=True)
                 machine.save()
                 count += 1
                 self.stdout.write(self.style.SUCCESS(f"Successfully regenerated QR for {machine.equipment_id}"))
