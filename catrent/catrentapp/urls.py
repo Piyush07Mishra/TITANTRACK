@@ -26,4 +26,5 @@ urlpatterns = [
     path('api/operators/save/', views.operator_save_api, name="operator_save_api"),
     path('api/operators/delete/<int:operator_id>/', views.operator_delete_api, name="operator_delete_api"),
     path('api/operators/reset/<int:operator_id>/', views.operator_reset_credentials_api, name="operator_reset_credentials_api"),
+    path('regenerate-qr/', views.manual_regenerate_qr, name="manual_regenerate_qr"),
 ]

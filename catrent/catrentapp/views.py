@@ -638,6 +638,19 @@ def checkin_machine(request, rental_id):
 
 
 @admin_required
+def manual_regenerate_qr(request):
+    """Manual trigger for QR regeneration since Shell is not available on Free Tier."""
+    from django.core.management import call_command
+    try:
+        call_command('regenerate_qr')
+        messages.success(request, "All QR codes have been regenerated and uploaded to Cloudinary!")
+    except Exception as e:
+        messages.error(request, f"Error regenerating QR codes: {str(e)}")
+    
+    return redirect('rental_dashboard')
+
+
+@admin_required
 def generate_forecast(request, equipment_type):
     """Generate demand forecast for a specific equipment type"""
     try:
