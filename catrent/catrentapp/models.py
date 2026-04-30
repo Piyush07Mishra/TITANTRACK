@@ -64,7 +64,8 @@ class Machine(models.Model):
 
     def generate_qr_code(self):
         # Create QR code with checkout URL for admins
-        checkout_url = f"https://catrent.onrender.com/checkout/{self.equipment_id}/"
+        site_url = settings.SITE_URL.rstrip('/')
+        checkout_url = f"{site_url}/checkout/{self.equipment_id}/"
 
         qr = qrcode.QRCode(
             version=1,

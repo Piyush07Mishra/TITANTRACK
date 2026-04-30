@@ -310,11 +310,25 @@ def download_qr(request, pk):
     machine = get_object_or_404(Machine, pk=pk)
     if not machine.qr_code:
         return HttpResponse("No QR code available for this equipment.")
-    file_path = machine.qr_code.path
-    with open(file_path, "rb") as f:
-        response = HttpResponse(f.read(), content_type="image/png")
-        response["Content-Disposition"] = f'attachment; filename="qr_{machine.equipment_id}.png"'
-        return response
+    
+    try:
+        # Use open() which works for both local and remote storage (Cloudinary)
+        with machine.qr_code.open("rb") as f:
+            response = HttpResponse(f.read(), content_type="image/png")
+            response["Content-Disposition"] = f'attachment; filename="qr_{machine.equipment_id}.png"'
+            return response
+    except Exception as e:
+        # Fallback for older records or storage issues: try to fetch via URL if possible
+        try:
+            import requests
+            resp = requests.get(machine.qr_code.url)
+            if resp.status_code == 200:
+                response = HttpResponse(resp.content, content_type="image/png")
+                response["Content-Disposition"] = f'attachment; filename="qr_{machine.equipment_id}.png"'
+                return response
+        except:
+            pass
+        return HttpResponse(f"Error accessing QR code file: {str(e)}")
 
 
 @admin_required
