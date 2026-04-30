@@ -641,9 +641,19 @@ def checkin_machine(request, rental_id):
 def manual_regenerate_qr(request):
     """Manual trigger for QR regeneration since Shell is not available on Free Tier."""
     from django.core.management import call_command
+    from django.conf import settings
+    import io
+    from django.core.management import CommandError
+
+    out = io.StringIO()
+    storage_type = getattr(settings, 'DEFAULT_FILE_STORAGE', 'Default (Local)')
+    
     try:
-        call_command('regenerate_qr')
-        messages.success(request, "All QR codes have been regenerated and uploaded to Cloudinary!")
+        call_command('regenerate_qr', stdout=out)
+        output = out.getvalue()
+        messages.success(request, f"QR Regeneration complete! Storage: {storage_type}")
+        # Log the output for debugging
+        print(f"QR Regeneration Output:\n{output}")
     except Exception as e:
         messages.error(request, f"Error regenerating QR codes: {str(e)}")
     
