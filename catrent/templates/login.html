@@ -511,9 +511,6 @@
             </svg>
             <span class="error-text error-text-danger">{{ error }}</span>
         </div>
-        <div class="forgot-wrap">
-            <a href="{% url 'password_reset' %}" class="forgot-link">Forgot Password?</a>
-        </div>
         {% endif %}
 
         {% if form.non_field_errors %}
@@ -560,6 +557,9 @@
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                         </svg>
                     </button>
+                </div>
+                <div class="forgot-wrap" style="margin-top: 8px; text-align: right;">
+                    <a href="{% url 'password_reset' %}" class="forgot-link">Forgot Password?</a>
                 </div>
             </div>
 
