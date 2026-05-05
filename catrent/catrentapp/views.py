@@ -670,32 +670,38 @@ def manual_regenerate_qr(request):
     return redirect('rental_dashboard')
 
 
-@admin_required
 @require_POST
+@admin_required
 def send_rental_reminders(request):
     """Send rental reminders manually"""
     try:
         from django.core.management import call_command
         import io
+        import sys
         
         out = io.StringIO()
         err = io.StringIO()
         
+        # Try to send reminders
         call_command('send_rental_remainders', stdout=out, stderr=err)
         
         output = out.getvalue()
         errors = err.getvalue()
         
         if errors:
-            print(f"[REMINDER] Errors: {errors}")
+            print(f"[REMINDER] Errors: {errors}", file=sys.stderr)
         
-        print(f"[REMINDER] Output: {output}")
+        if output:
+            print(f"[REMINDER] Output: {output}", file=sys.stderr)
+        
         messages.success(request, 'Rental reminders processed for today.')
     except Exception as e:
         import traceback
+        import sys
         error_msg = f"Failed to send reminders: {str(e)}"
-        print(f"[REMINDER ERROR] {error_msg}")
-        print(f"[REMINDER TRACEBACK] {traceback.format_exc()}")
+        print(f"[REMINDER ERROR] {error_msg}", file=sys.stderr)
+        traceback_str = traceback.format_exc()
+        print(f"[REMINDER TRACEBACK] {traceback_str}", file=sys.stderr)
         messages.error(request, error_msg)
     
     return redirect('rental_dashboard')
