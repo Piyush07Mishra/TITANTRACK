@@ -22,6 +22,10 @@ env/
 db.sqlite3
 media/
 staticfiles/
+qr_codes/
+
+# Debug scripts
+scripts/
 
 # Data (Avoid large files)
 *.csv
