@@ -1,9 +1,5 @@
-import pandas as pd
-import numpy as np
 import os
 from datetime import datetime, timedelta
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from itertools import product
 import warnings
 warnings.filterwarnings('ignore')
@@ -30,6 +26,10 @@ def equipment_demand_forecast(df, output_folder='forecast/', train_year_cutoff=2
     dict
         Dictionary containing model metrics, forecasts, and feature importance
     """
+    import pandas as pd
+    import numpy as np
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
     
     # Create output directory if it doesn't exist
     os.makedirs(output_folder, exist_ok=True)

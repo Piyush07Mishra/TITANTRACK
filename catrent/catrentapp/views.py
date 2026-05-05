@@ -11,7 +11,6 @@ from django.db import transaction
 from datetime import datetime
 from datetime import timedelta
 import os
-import pandas as pd
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.conf import settings
@@ -22,7 +21,6 @@ from .forms import (
     MachineForm, CheckoutForm, OperatorForm, SignupForm,
     CatRentLoginForm, AdminSignupForm, ChangePasswordForm,
 )
-from .demand_forecasting import equipment_demand_forecast
 
 
 def _candidate_project_dirs():
@@ -711,6 +709,9 @@ def send_rental_reminders(request):
 def generate_forecast(request, equipment_type):
     """Generate demand forecast for a specific equipment type"""
     try:
+        import pandas as pd
+        from .demand_forecasting import equipment_demand_forecast
+        
         # Create forecast directory if it doesn't exist
         forecast_dir = os.path.join(settings.BASE_DIR, 'forecast')
         os.makedirs(forecast_dir, exist_ok=True)
