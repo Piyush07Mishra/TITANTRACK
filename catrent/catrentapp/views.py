@@ -695,7 +695,7 @@ def send_rental_reminders(request):
             print(f"[REMINDER] Output: {output}", file=sys.stderr)
         
         messages.success(request, 'Rental reminders processed for today.')
-    except Exception as e:
+    except BaseException as e:
         import traceback
         import sys
         error_msg = f"Failed to send reminders: {str(e)}"

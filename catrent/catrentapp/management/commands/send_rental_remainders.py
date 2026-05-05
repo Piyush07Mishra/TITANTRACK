@@ -7,6 +7,8 @@ from datetime import timedelta
 from pathlib import Path
 import json
 import os
+import smtplib
+import socket
 
 # Run frequently and notify only for due-today rentals.
 REMINDER_DAYS = [0]
@@ -113,14 +115,20 @@ CatRent Team
 """
 
                 print(f"[DEBUG] Sending email to {operator_email}...")
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [operator_email],
-                    fail_silently=False,
-                )
-
-                sent_cache[reminder_key] = timezone.now().isoformat()
-                _save_sent_cache(sent_cache)
-                print(f"[DEBUG] Reminder sent for rental {rental.rental_id}")
+                try:
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [operator_email],
+                        fail_silently=False,
+                    )
+                    sent_cache[reminder_key] = timezone.now().isoformat()
+                    _save_sent_cache(sent_cache)
+                    print(f"[DEBUG] Reminder sent for rental {rental.rental_id}")
+                except (smtplib.SMTPException, socket.error, ConnectionRefusedError, TimeoutError) as exc:
+                    print(f"[EMAIL ERROR] Failed to send reminder for rental {rental.rental_id}: {exc}")
+                    continue
+                except Exception as exc:
+                    print(f"[EMAIL ERROR] Unexpected failure sending reminder for rental {rental.rental_id}: {exc}")
+                    continue
