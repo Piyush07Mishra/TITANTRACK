@@ -2387,9 +2387,10 @@
                 <a href="/add/" class="btn btn-primary">Add / Manage Equipment</a>
                 <a href="#operator-management-section" class="btn btn-primary">Manage Operators</a>
                 <a href="/admin/" class="btn btn-secondary">Django Admin Panel</a>
-                <button class="btn btn-secondary" type="button"
-                    onclick="alert('Run in server terminal: python manage.py send_rental_remainders')">Send Rental
-                    Reminders</button>
+                <form method="post" action="{% url 'send_rental_reminders' %}">
+                    {% csrf_token %}
+                    <button class="btn btn-secondary" type="submit">Send Rental Reminders</button>
+                </form>
             </div>
         </div>
         {% endif %}

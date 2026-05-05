@@ -15,6 +15,7 @@ import pandas as pd
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.conf import settings
+from django.core.management import call_command
 from .utils import generate_operator_id
 from .models import Machine, Rental, EquipmentHealth, Operator, UserProfile
 from .forms import (
@@ -666,6 +667,17 @@ def manual_regenerate_qr(request):
     except Exception as e:
         messages.error(request, f"Error: {str(e)} | {debug_info}")
     
+    return redirect('rental_dashboard')
+
+
+@admin_required
+@require_POST
+def send_rental_reminders(request):
+    try:
+        call_command('send_rental_remainders')
+        messages.success(request, 'Rental reminders sent for today.')
+    except Exception as e:
+        messages.error(request, f'Failed to send reminders: {e}')
     return redirect('rental_dashboard')
 
 

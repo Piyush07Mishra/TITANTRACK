@@ -27,4 +27,5 @@ urlpatterns = [
     path('api/operators/delete/<int:operator_id>/', views.operator_delete_api, name="operator_delete_api"),
     path('api/operators/reset/<int:operator_id>/', views.operator_reset_credentials_api, name="operator_reset_credentials_api"),
     path('regenerate-qr/', views.manual_regenerate_qr, name="manual_regenerate_qr"),
+    path('send-reminders/', views.send_rental_reminders, name="send_rental_reminders"),
 ]
