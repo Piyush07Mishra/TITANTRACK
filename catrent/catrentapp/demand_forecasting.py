@@ -4,18 +4,11 @@ import os
 from datetime import datetime, timedelta
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-# Only import matplotlib for non-web usage
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-else:
-    import matplotlib
-    matplotlib.use('Agg')  # Non-interactive backend
-    import matplotlib.pyplot as plt
-    import seaborn as sns
 from itertools import product
 import warnings
 warnings.filterwarnings('ignore')
+
+# Matplotlib will be imported lazily inside functions to save memory on Render
 
 def equipment_demand_forecast(df, output_folder='forecast/', train_year_cutoff=2024, test_year=2025):
     """
@@ -280,6 +273,12 @@ def equipment_demand_forecast(df, output_folder='forecast/', train_year_cutoff=2
         "target_checkout_count": ["sum", "mean", "count"]
     }).round(2)
     print(summary)
+    
+    # Import matplotlib only when needed (lazy import to save memory on Render)
+    import matplotlib
+    matplotlib.use('Agg')  # Non-interactive backend
+    import matplotlib.pyplot as plt
+    import seaborn as sns
     
     # 1. Combined visualization for all equipment types
     equipment_types = sorted(valid_equipment_types)
