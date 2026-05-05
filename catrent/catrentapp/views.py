@@ -794,17 +794,26 @@ def generate_forecast(request, equipment_type):
 def get_forecast_image(request, equipment_type):
     """Return the forecast image for a specific equipment type"""
     image_path = _resolve_existing_path('forecast', f"{equipment_type}_demand_forecast_2025.png")
-    if image_path:
-        return FileResponse(open(image_path, 'rb'), content_type='image/png')
+    
+    if not image_path:
+        # Try fallbacks
+        image_path = _resolve_existing_path('forecast', "equipment_demand_forecast_2025_combined.png")
+    
+    if not image_path:
+        image_path = _resolve_existing_path('forecast', "feature_importance.png")
 
-    combined_path = _resolve_existing_path('forecast', "equipment_demand_forecast_2025_combined.png")
-    if combined_path:
-        return FileResponse(open(combined_path, 'rb'), content_type='image/png')
+    if image_path and image_path.exists():
+        size = image_path.stat().st_size
+        print(f"[DEBUG] Serving forecast image: {image_path} ({size} bytes)")
+        
+        # Use open explicitly and set content_length
+        f = open(image_path, 'rb')
+        response = FileResponse(f, content_type='image/png')
+        response['Content-Length'] = size
+        response['Cache-Control'] = 'public, max-age=3600' # Cache for 1 hour
+        return response
 
-    feature_importance_path = _resolve_existing_path('forecast', "feature_importance.png")
-    if feature_importance_path:
-        return FileResponse(open(feature_importance_path, 'rb'), content_type='image/png')
-
+    print(f"[ERROR] Forecast image not found for type: {equipment_type}")
     return HttpResponse("Forecast image not found. Please generate a forecast first.", status=404)
 
 

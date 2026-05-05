@@ -114,7 +114,7 @@ Thank you,
 CatRent Team
 """
 
-                print(f"[DEBUG] Sending email to {operator_email}...")
+                print(f"[DEBUG] Sending email to {operator_email} using {settings.EMAIL_HOST}:{settings.EMAIL_PORT}...")
                 try:
                     send_mail(
                         subject,
@@ -127,7 +127,10 @@ CatRent Team
                     _save_sent_cache(sent_cache)
                     print(f"[DEBUG] Reminder sent for rental {rental.rental_id}")
                 except (smtplib.SMTPException, socket.error, ConnectionRefusedError, TimeoutError) as exc:
-                    print(f"[EMAIL ERROR] Failed to send reminder for rental {rental.rental_id}: {exc}")
+                    host_info = f"{settings.EMAIL_HOST}:{settings.EMAIL_PORT}"
+                    print(f"[EMAIL ERROR] Failed to send reminder to {operator_email} via {host_info}: {exc}")
+                    if "[Errno 101]" in str(exc):
+                        print(f"[TIP] 'Network is unreachable' often means Port {settings.EMAIL_PORT} is blocked or IPv6 is failing. Try Port 465 with EMAIL_USE_SSL=True.")
                     continue
                 except Exception as exc:
                     print(f"[EMAIL ERROR] Unexpected failure sending reminder for rental {rental.rental_id}: {exc}")
