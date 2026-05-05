@@ -6,28 +6,52 @@ from django.conf import settings
 from datetime import timedelta
 from pathlib import Path
 import json
+import os
 
 # Run frequently and notify only for due-today rentals.
 REMINDER_DAYS = [0]
 
 
 def _cache_path():
-    return Path(settings.BASE_DIR) / ".reminder_sent_cache.json"
+    # Try to use a temp directory on Render, fallback to BASE_DIR
+    temp_dir = os.environ.get('TMPDIR') or os.environ.get('TEMP') or os.path.expanduser('~/.tmp')
+    if os.path.isdir(temp_dir) and os.access(temp_dir, os.W_OK):
+        return Path(temp_dir) / ".reminder_sent_cache.json"
+    # Fallback to BASE_DIR
+    base_path = Path(settings.BASE_DIR) / ".reminder_sent_cache.json"
+    if os.access(Path(settings.BASE_DIR), os.W_OK):
+        return base_path
+    # Last resort: use memory (dict stored in module, won't persist across restarts)
+    return None
+
+
+_memory_cache = {}
 
 
 def _load_sent_cache():
     path = _cache_path()
+    if path is None:
+        return _memory_cache
     if not path.exists():
         return {}
     try:
         return json.loads(path.read_text())
-    except Exception:
-        return {}
+    except Exception as e:
+        print(f"[DEBUG] Error reading cache file: {e}, using memory cache instead")
+        return _memory_cache
 
 
 def _save_sent_cache(data):
+    global _memory_cache
+    _memory_cache = data  # Always save to memory
+    
     path = _cache_path()
-    path.write_text(json.dumps(data, indent=2, sort_keys=True))
+    if path is None:
+        return
+    try:
+        path.write_text(json.dumps(data, indent=2, sort_keys=True))
+    except Exception as e:
+        print(f"[DEBUG] Error writing cache file: {e}, using memory cache instead")
 
 class Command(BaseCommand):
     help = "Send email reminders to operators for upcoming rental check-ins (no logging)"
